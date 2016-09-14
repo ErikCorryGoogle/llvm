@@ -122,7 +122,7 @@ class LLVM_LIBRARY_VISIBILITY X86AsmPrinter : public AsmPrinter {
 public:
   explicit X86AsmPrinter(TargetMachine &TM,
                          std::unique_ptr<MCStreamer> Streamer)
-      : AsmPrinter(TM, std::move(Streamer)), SM(*this), FM(*this) {}
+      : AsmPrinter(TM, std::move(Streamer)), SM(*this, getPointerSize()), FM(*this) {}
 
   const char *getPassName() const override {
     return "X86 Assembly / Object Emitter";

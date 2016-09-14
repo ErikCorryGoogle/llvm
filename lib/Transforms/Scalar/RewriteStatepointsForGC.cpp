@@ -405,15 +405,22 @@ static BaseDefiningValueResult findBaseDefiningValue(Value *I) {
 
   if (CastInst *CI = dyn_cast<CastInst>(I)) {
     Value *Def = CI->stripPointerCasts();
-    // If stripping pointer casts changes the address space there is an
-    // addrspacecast in between.
-    assert(cast<PointerType>(Def->getType())->getAddressSpace() ==
-               cast<PointerType>(CI->getType())->getAddressSpace() &&
-           "unsupported addrspacecast");
-    // If we find a cast instruction here, it means we've found a cast which is
-    // not simply a pointer cast (i.e. an inttoptr).  We don't know how to
-    // handle int->ptr conversion.
-    assert(!isa<CastInst>(Def) && "shouldn't find another cast here");
+    // In the original version of this transform, we asserted an error if
+    // we found an inttoptr cast here, but in the context of a Dart
+    // implementation this is just an int being cast to a Smi.  Just accept
+    // that the value is its own base for now.  TODO(erikcorry): We could
+    // ignore this since if we know it's a Smi we don't care about it for
+    // GC purposes.
+    if (Def == CI && CI->getOperand(0)->getType()->isIntOrIntVectorTy()) {
+      return BaseDefiningValueResult(I, true);
+    }
+    // If stripping pointer casts changes the address space then we are
+    // creating a GCed pointer from a non-GCed pointer. We only ever do that to
+    // base pointers.
+    if (cast<PointerType>(Def->getType())->getAddressSpace() !=
+               cast<PointerType>(CI->getType())->getAddressSpace()) {
+      return BaseDefiningValueResult(I, true);
+    }
     return findBaseDefiningValue(Def);
   }
 

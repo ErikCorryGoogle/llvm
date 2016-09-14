@@ -660,7 +660,6 @@ InsertSafepointPoll(Instruction *InsertBefore,
          "malformed poll function");
 
   scanInlinedCode(&*Start, &*After, Calls, BBs);
-  assert(!Calls.empty() && "slow path not found for safepoint poll");
 
   // Record the fact we need a parsable state at the runtime call contained in
   // the poll function.  This is required so that the runtime knows how to

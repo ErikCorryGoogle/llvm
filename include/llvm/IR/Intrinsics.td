@@ -106,6 +106,9 @@ class LLVMQualPointerType<LLVMType elty, int addrspace>
 class LLVMPointerType<LLVMType elty>
   : LLVMQualPointerType<elty, 0>;
 
+class LLVMGCPointerType<LLVMType elty>
+  : LLVMQualPointerType<elty, 1>;
+
 class LLVMAnyPointerType<LLVMType elty>
   : LLVMType<iPTRAny>{
   LLVMType ElTy = elty;
@@ -157,6 +160,8 @@ def llvm_f128_ty       : LLVMType<f128>;
 def llvm_ppcf128_ty    : LLVMType<ppcf128>;
 def llvm_ptr_ty        : LLVMPointerType<llvm_i8_ty>;             // i8*
 def llvm_ptrptr_ty     : LLVMPointerType<llvm_ptr_ty>;            // i8**
+def llvm_gc_ptr_ty     : LLVMGCPointerType<llvm_i8_ty>;           // i8*, GC'ed
+def llvm_gc_ptrptr_ty  : LLVMGCPointerType<llvm_gc_ptr_ty>;       // i8**, GC'ed
 def llvm_anyptr_ty     : LLVMAnyPointerType<llvm_i8_ty>;          // (space)i8*
 def llvm_empty_ty      : LLVMType<OtherVT>;                       // { }
 def llvm_descriptor_ty : LLVMPointerType<llvm_empty_ty>;          // { }*
@@ -278,14 +283,33 @@ def int_vaend   : Intrinsic<[], [llvm_ptr_ty], [], "llvm.va_end">;
 
 //===------------------- Garbage Collection Intrinsics --------------------===//
 //
-def int_gcroot  : Intrinsic<[],
-                            [llvm_ptrptr_ty, llvm_ptr_ty]>;
-def int_gcread  : Intrinsic<[llvm_ptr_ty],
-                            [llvm_ptr_ty, llvm_ptrptr_ty],
-                            [IntrReadMem, IntrArgMemOnly]>;
-def int_gcwrite : Intrinsic<[],
-                            [llvm_ptr_ty, llvm_ptr_ty, llvm_ptrptr_ty],
-                            [IntrArgMemOnly, NoCapture<1>, NoCapture<2>]>;
+def int_gcroot   : Intrinsic<[],
+                             [llvm_ptrptr_ty, llvm_ptr_ty]>;
+def int_gcread   : Intrinsic<[llvm_ptr_ty],
+                             [llvm_ptr_ty, llvm_ptrptr_ty],
+                             [IntrReadMem, IntrArgMemOnly]>;
+def int_gcwrite  : Intrinsic<[],
+                             [llvm_ptr_ty, llvm_ptr_ty, llvm_ptrptr_ty],
+                             [IntrArgMemOnly, NoCapture<1>, NoCapture<2>]>;
+def int_tagread  : Intrinsic<[llvm_gc_ptr_ty],
+                             [llvm_gc_ptrptr_ty],
+                             [IntrReadMem, IntrArgMemOnly]>;
+def int_tagwrite  : Intrinsic<[],
+                              [llvm_gc_ptr_ty, llvm_gc_ptrptr_ty],
+                              [IntrWriteMem, IntrArgMemOnly,
+                               ReadNone<0>, WriteOnly<1>]>;
+def int_smitoint  : Intrinsic<[llvm_i32_ty],
+                              [llvm_gc_ptr_ty],
+                              [IntrNoMem]>;
+def int_inttosmi  : Intrinsic<[llvm_gc_ptr_ty],
+                              [llvm_i32_ty],
+                              [IntrNoMem]>;
+def int_smitoint64  : Intrinsic<[llvm_i64_ty],
+                                [llvm_gc_ptr_ty],
+                                [IntrNoMem]>;
+def int_inttosmi64  : Intrinsic<[llvm_gc_ptr_ty],
+                                [llvm_i64_ty],
+                                [IntrNoMem]>;
 
 //===--------------------- Code Generator Intrinsics ----------------------===//
 //

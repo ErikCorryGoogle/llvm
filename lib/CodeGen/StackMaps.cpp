@@ -69,7 +69,8 @@ unsigned PatchPointOpers::getNextScratchIdx(unsigned StartIdx) const {
   return ScratchIdx;
 }
 
-StackMaps::StackMaps(AsmPrinter &AP) : AP(AP) {
+StackMaps::StackMaps(AsmPrinter &AP, size_t pointerSize) 
+: AP(AP), pointerSize(pointerSize) {
   if (StackMapVersion != 1)
     llvm_unreachable("Unsupported stackmap version!");
 }
@@ -409,10 +410,12 @@ void StackMaps::emitStackmapHeader(MCStreamer &OS) {
 }
 
 /// Emit the function frame record for each function.
-///
+/// 
+/// word is pointer-sized slot
+/// 
 /// StkSizeRecord[NumFunctions] {
-///   uint64 : Function Address
-///   uint64 : Stack Size
+///   word : Function Address
+///   word : Stack Size
 /// }
 void StackMaps::emitFunctionFrameRecords(MCStreamer &OS) {
   // Function Frame records.
@@ -420,8 +423,8 @@ void StackMaps::emitFunctionFrameRecords(MCStreamer &OS) {
   for (auto const &FR : FnStackSize) {
     DEBUG(dbgs() << WSMP << "function addr: " << FR.first
                  << " frame size: " << FR.second);
-    OS.EmitSymbolValue(FR.first, 8);
-    OS.EmitIntValue(FR.second, 8);
+    OS.EmitSymbolValue(FR.first, pointerSize);
+    OS.EmitIntValue(FR.second, pointerSize);
   }
 }
 

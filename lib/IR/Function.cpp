@@ -501,10 +501,7 @@ static Intrinsic::ID lookupIntrinsicID(const ValueName *ValName) {
   int Adjust = NameTable.data() - IntrinsicNameTable;
   Intrinsic::ID ID = static_cast<Intrinsic::ID>(Idx + Adjust);
 
-  // If the intrinsic is not overloaded, require an exact match. If it is
-  // overloaded, require a prefix match.
-  bool IsPrefixMatch = Name.size() > strlen(NameTable[Idx]);
-  return IsPrefixMatch == isOverloaded(ID) ? ID : Intrinsic::not_intrinsic;
+  return ID;
 }
 
 void Function::recalculateIntrinsicID() {

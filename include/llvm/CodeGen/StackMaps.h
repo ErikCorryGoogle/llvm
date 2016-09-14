@@ -162,7 +162,7 @@ public:
   // OpParser.
   typedef enum { DirectMemRefOp, IndirectMemRefOp, ConstantOp } OpType;
 
-  StackMaps(AsmPrinter &AP);
+  StackMaps(AsmPrinter &AP, size_t pointerSize);
 
   void reset() {
     CSInfos.clear();
@@ -208,6 +208,7 @@ private:
   typedef std::vector<CallsiteInfo> CallsiteInfoList;
 
   AsmPrinter &AP;
+  size_t pointerSize;
   CallsiteInfoList CSInfos;
   ConstantPool ConstPool;
   FnStackSizeMap FnStackSize;

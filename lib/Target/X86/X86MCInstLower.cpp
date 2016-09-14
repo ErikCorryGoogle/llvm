@@ -843,7 +843,7 @@ static void EmitNops(MCStreamer &OS, unsigned NumBytes, bool Is64Bit,
 
 void X86AsmPrinter::LowerSTATEPOINT(const MachineInstr &MI,
                                     X86MCInstLower &MCIL) {
-  assert(Subtarget->is64Bit() && "Statepoint currently only supports X86-64");
+  //assert(Subtarget->is64Bit() && "Statepoint currently only supports X86-64");
 
   StatepointOpers SOpers(&MI);
   if (unsigned PatchBytes = SOpers.getNumPatchBytes()) {
@@ -859,7 +859,7 @@ void X86AsmPrinter::LowerSTATEPOINT(const MachineInstr &MI,
     case MachineOperand::MO_ExternalSymbol:
       CallTargetMCOp = MCIL.LowerSymbolOperand(
           CallTarget, MCIL.GetSymbolFromOperand(CallTarget));
-      CallOpcode = X86::CALL64pcrel32;
+      CallOpcode = Subtarget->is64Bit() ? X86::CALL64pcrel32 : X86::CALLpcrel32;
       // Currently, we only support relative addressing with statepoints.
       // Otherwise, we'll need a scratch register to hold the target
       // address.  You'll fail asserts during load & relocation if this
@@ -867,7 +867,7 @@ void X86AsmPrinter::LowerSTATEPOINT(const MachineInstr &MI,
       break;
     case MachineOperand::MO_Immediate:
       CallTargetMCOp = MCOperand::createImm(CallTarget.getImm());
-      CallOpcode = X86::CALL64pcrel32;
+      CallOpcode = Subtarget->is64Bit() ? X86::CALL64pcrel32 : X86::CALLpcrel32;
       // Currently, we only support relative addressing with statepoints.
       // Otherwise, we'll need a scratch register to hold the target
       // immediate.  You'll fail asserts during load & relocation if this
@@ -875,7 +875,7 @@ void X86AsmPrinter::LowerSTATEPOINT(const MachineInstr &MI,
       break;
     case MachineOperand::MO_Register:
       CallTargetMCOp = MCOperand::createReg(CallTarget.getReg());
-      CallOpcode = X86::CALL64r;
+      CallOpcode = Subtarget->is64Bit() ? X86::CALL64r : X86::CALL32r;
       break;
     default:
       llvm_unreachable("Unsupported operand type in statepoint call target");
