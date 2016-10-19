@@ -295,7 +295,7 @@ def int_tagread  : Intrinsic<[llvm_gc_ptr_ty],
                              [llvm_gc_ptrptr_ty],
                              [IntrReadMem, IntrArgMemOnly]>;
 def int_tagwrite  : Intrinsic<[],
-                              [llvm_gc_ptr_ty, llvm_gc_ptrptr_ty],
+                              [llvm_gc_ptr_ty, llvm_gc_ptr_ty, llvm_gc_ptrptr_ty],
                               [IntrWriteMem, IntrArgMemOnly,
                                ReadNone<0>, WriteOnly<1>]>;
 def int_smitoint  : Intrinsic<[llvm_i32_ty],
