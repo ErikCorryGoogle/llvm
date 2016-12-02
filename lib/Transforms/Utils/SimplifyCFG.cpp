@@ -1225,7 +1225,8 @@ static bool HoistThenElseCodeToIf(BranchInst *BI,
                            LLVMContext::MD_align,
                            LLVMContext::MD_dereferenceable,
                            LLVMContext::MD_dereferenceable_or_null,
-                           LLVMContext::MD_mem_parallel_loop_access};
+                           LLVMContext::MD_mem_parallel_loop_access,
+                           LLVMContext::MD_never_faults};
     combineMetadata(I1, I2, KnownIDs);
     I2->eraseFromParent();
     Changed = true;

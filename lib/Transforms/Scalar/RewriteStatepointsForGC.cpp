@@ -2215,11 +2215,15 @@ RewriteStatepointsForGC::stripNonValidAttributesFromPrototype(Function &F) {
   LLVMContext &Ctx = F.getContext();
 
   for (Argument &A : F.args())
-    if (isa<PointerType>(A.getType()))
-      RemoveNonValidAttrAtIndex(Ctx, F, A.getArgNo() + 1);
+    if (PointerType* ptr_ty = dyn_cast<PointerType>(A.getType())) {
+      if (ptr_ty->getAddressSpace() != 0)
+        RemoveNonValidAttrAtIndex(Ctx, F, A.getArgNo() + 1);
+    }
 
-  if (isa<PointerType>(F.getReturnType()))
-    RemoveNonValidAttrAtIndex(Ctx, F, AttributeSet::ReturnIndex);
+  if (PointerType* ret_ty = dyn_cast<PointerType>(F.getReturnType())) {
+    if (ret_ty->getAddressSpace() != 0)
+      RemoveNonValidAttrAtIndex(Ctx, F, AttributeSet::ReturnIndex);
+  }
 }
 
 void RewriteStatepointsForGC::stripNonValidAttributesFromBody(Function &F) {
@@ -2251,10 +2255,14 @@ void RewriteStatepointsForGC::stripNonValidAttributesFromBody(Function &F) {
 
     if (CallSite CS = CallSite(&I)) {
       for (int i = 0, e = CS.arg_size(); i != e; i++)
-        if (isa<PointerType>(CS.getArgument(i)->getType()))
-          RemoveNonValidAttrAtIndex(Ctx, CS, i + 1);
-      if (isa<PointerType>(CS.getType()))
-        RemoveNonValidAttrAtIndex(Ctx, CS, AttributeSet::ReturnIndex);
+        if (PointerType* ptr_ty = dyn_cast<PointerType>(CS.getArgument(i)->getType())) {
+          if (ptr_ty->getAddressSpace() != 0)
+            RemoveNonValidAttrAtIndex(Ctx, CS, i + 1);
+        }
+      if (PointerType* ptr_ty = dyn_cast<PointerType>(CS.getType())) {
+        if (ptr_ty->getAddressSpace() != 0)
+          RemoveNonValidAttrAtIndex(Ctx, CS, AttributeSet::ReturnIndex);
+      }
     }
   }
 }

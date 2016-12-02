@@ -346,6 +346,7 @@ static LoadInst *combineLoadToNewType(InstCombiner &IC, LoadInst &LI, Type *NewT
     case LLVMContext::MD_fpmath:
     case LLVMContext::MD_tbaa_struct:
     case LLVMContext::MD_invariant_load:
+    case LLVMContext::MD_never_faults:
     case LLVMContext::MD_alias_scope:
     case LLVMContext::MD_noalias:
     case LLVMContext::MD_nontemporal:
@@ -831,7 +832,8 @@ Instruction *InstCombiner::visitLoadInst(LoadInst &LI) {
           LLVMContext::MD_invariant_load,  LLVMContext::MD_nonnull,
           LLVMContext::MD_invariant_group, LLVMContext::MD_align,
           LLVMContext::MD_dereferenceable,
-          LLVMContext::MD_dereferenceable_or_null};
+          LLVMContext::MD_dereferenceable_or_null,
+          LLVMContext::MD_never_faults};
       combineMetadata(NLI, &LI, KnownIDs);
     };
 
@@ -885,8 +887,10 @@ Instruction *InstCombiner::visitLoadInst(LoadInst &LI) {
     if (SelectInst *SI = dyn_cast<SelectInst>(Op)) {
       // load (select (Cond, &V1, &V2))  --> select(Cond, load &V1, load &V2).
       unsigned Align = LI.getAlignment();
-      if (isSafeToLoadUnconditionally(SI->getOperand(1), Align, DL, SI) &&
-          isSafeToLoadUnconditionally(SI->getOperand(2), Align, DL, SI)) {
+      bool LoadCantFault = LI.getMetadata(LLVMContext::MD_never_faults);
+      if (LoadCantFault || (
+            isSafeToLoadUnconditionally(SI->getOperand(1), Align, DL, SI) &&
+            isSafeToLoadUnconditionally(SI->getOperand(2), Align, DL, SI))) {
         LoadInst *V1 = Builder->CreateLoad(SI->getOperand(1),
                                            SI->getOperand(1)->getName()+".val");
         LoadInst *V2 = Builder->CreateLoad(SI->getOperand(2),

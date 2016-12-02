@@ -949,7 +949,8 @@ bool llvm::promoteLoopAccessesToScalars(
         assert(!Load->isVolatile() && "AST broken");
         if (!Load->isSimple())
           return Changed;
-
+        if (Load->getMetadata(LLVMContext::MD_never_faults))
+          CanSpeculateLoad = true;
         if (!GuaranteedToExecute && !CanSpeculateLoad)
           CanSpeculateLoad = isSafeToExecuteUnconditionally(
               *Load, DT, CurLoop, SafetyInfo, Preheader->getTerminator());

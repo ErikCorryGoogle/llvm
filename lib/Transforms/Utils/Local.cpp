@@ -1617,6 +1617,10 @@ void llvm::combineMetadata(Instruction *K, const Instruction *J,
         // Only set the !invariant.load if it is present in both instructions.
         K->setMetadata(Kind, JMD);
         break;
+      case LLVMContext::MD_never_faults:
+        // Only set the !never.faults if it is present in both instructions.
+        K->setMetadata(Kind, JMD);
+        break;
       case LLVMContext::MD_nonnull:
         // Only set the !nonnull if it is present in both instructions.
         K->setMetadata(Kind, JMD);

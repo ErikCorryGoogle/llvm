@@ -3111,6 +3111,8 @@ bool llvm::isSafeToSpeculativelyExecute(const Value *V,
         // Speculative load may load data from dirty regions.
         LI->getFunction()->hasFnAttribute(Attribute::SanitizeAddress))
       return false;
+    if (LI->getMetadata(LLVMContext::MD_never_faults))
+      return true;
     const DataLayout &DL = LI->getModule()->getDataLayout();
     return isDereferenceableAndAlignedPointer(LI->getPointerOperand(),
                                               LI->getAlignment(), DL, CtxI, DT);

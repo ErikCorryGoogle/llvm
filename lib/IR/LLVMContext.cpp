@@ -138,6 +138,10 @@ LLVMContext::LLVMContext() : pImpl(new LLVMContextImpl(*this)) {
   assert(TypeID == MD_type && "type kind id drifted");
   (void)TypeID;
 
+  unsigned NeverFaultsID = getMDKindID("never.faults");
+  assert(NeverFaultsID == MD_never_faults && "never.faults kind id drifted");
+  (void)NeverFaultsID;
+
   auto *DeoptEntry = pImpl->getOrInsertBundleTag("deopt");
   assert(DeoptEntry->second == LLVMContext::OB_deopt &&
          "deopt operand bundle id drifted!");
